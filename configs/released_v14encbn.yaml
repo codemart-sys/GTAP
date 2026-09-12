@@ -1,0 +1,13 @@
+model:
+  NAME: PointNextMultimodalRLShapley
+  text_dim: 1024
+  image_channels: 64
+  descriptor_channels: 8
+  norm_mode: bn_encoder
+  gate_init: 0.0
+  main_multitask: true
+  encoder_args: {NAME: PointNextEncoder, blocks: [1,1,1,1,1], strides: [1,4,4,4,4], sa_layers: 1, sa_use_res: true, width: 24, in_channels: 3, expansion: 2, radius: 0.1, nsample: 32, aggr_args: {feature_type: dp_fj, reduction: max}, group_args: {NAME: ballquery, normalize_dp: true}, conv_args: {order: conv-norm-act}, act_args: {act: relu}, norm_args: {norm: bn}}
+  decoder_args: {NAME: PointNextDecoder}
+  cls_args: {NAME: SegHead, num_classes: 2, in_channels: null, norm_args: {norm: bn}}
+loss: {temperature: 0.07, contrastive_weight: 0.2, utility_weight: 0.05, actor_weight: 0.02, entropy_weight: 0.005}
+optimizer: {lr: 0.0003, weight_decay: 0.0001}
