@@ -1,4 +1,3 @@
-"""Dependency-light exact Shapley implementation and axioms test support."""
 import itertools
 import math
 import torch

@@ -1,15 +1,3 @@
-"""Losses: multi-positive contrast, segmentation, coalition utility and A2C.
-
-v1.2 switched the contrastive/utility terms off during the point-only warmup (`aux_active`).
-v1.3 replaced that switch with a continuous `aux_scale` (ramped from epoch 31 to 50) and skips the
-eight coalition cross-entropies when it is zero.
-
-v1.4 makes the auxiliary terms *ablation-aware*: the model reports which modalities / shapley / rl
-are switched off in `out['ablate']`, and this loss then
-  * averages the contrastive objective over the modality pairs that still exist (zero if none do),
-  * skips the coalition-utility calibration when the Shapley game is ablated,
-  * skips the Actor-Critic terms when no `log_prob` is produced (fixed-view ablation).
-"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -33,7 +21,6 @@ class MultimodalLoss(nn.Module):
    if not flags.get('text') and not flags.get('image'): pairs.append(multi_positive(i,t,tid,tid,self.temperature))
    if pairs: contrast=sum(pairs)/len(pairs)
    if not flags.get('shapley'):
-    # Each of the eight characteristic values is calibrated to its actual coalition segmentation payoff.
     b,k,c,n=out['coalition_logits'].shape; coalition_targets=batch['y'][:,None].expand(b,k,n).reshape(b*k,n)
     coalition_ce=F.cross_entropy(out['coalition_logits'].reshape(b*k,c,n),coalition_targets,reduction='none').mean(-1).reshape(b,k)
     utility=F.mse_loss(out['coalition_utilities'],-coalition_ce.detach())
